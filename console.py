@@ -5,6 +5,7 @@ import argparse
 import csv
 import sys
 
+
 class Console(object):
     """Console client for the 1&1 Mail account Manager"""
 
@@ -16,8 +17,8 @@ class Console(object):
 
         # Create the parser for the credentials
         parser_credential_group = parser.add_argument_group('Credentials')
-        parser_credential_group.add_argument('--domain',
-                                             type=str, help='Domain name to log'
+        parser_credential_group.add_argument('--domain', type=str,
+                                             help='Domain name to log'
                                              'in Control Panel', required=True)
         parser_credential_group.add_argument('--password', type=str,
                                              help='Password to log in'
@@ -45,8 +46,8 @@ class Console(object):
                                  type=argparse.FileType('w'),
                                  help='File to write the list')
         parser_list.add_argument('--extended',
-                                 help='Get extended information for every'
-                                 ' account. File Output format be used with the'
+                                 help='Get extended information for every '
+                                 'account. File Output format be used with the'
                                  ' \'create\' command if you add the password',
                                  action='store_true')
         parser_list.set_defaults(func=self.list)
