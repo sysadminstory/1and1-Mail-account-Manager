@@ -6,6 +6,7 @@ import http.cookiejar
 import sys
 from lxml import html
 
+
 class EmailAccountManager(object):
     """Class to manipulaote amil accounts on 1&1 Control Panel"""
 
@@ -39,7 +40,7 @@ class EmailAccountManager(object):
         """Construstor used to init the config and authenticate"""
         self.oneandoneuser = username
         self.onenandonepassword = password
-        self.headers = {'User-Agent' : EmailAccountManager.userAgent}
+        self.headers = {'User-Agent': EmailAccountManager.userAgent}
         self.cookies = http.cookiejar.LWPCookieJar()
         handlers = [
             urllib.request.HTTPHandler(),
@@ -80,7 +81,6 @@ class EmailAccountManager(object):
             self.error('Authentication failed !\n')
             result = False
         return result
-
 
     def createAccount(self, data):
         """Create an email account using the parameters in data"""
