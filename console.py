@@ -86,18 +86,18 @@ class Console(object):
         """List the emails in the desired format and output"""
         mailList = self.mailAPI.getAccountList()
 
-        if args.output != None:
+        if args.output is not None:
             output = args.output[0]
             writer = csv.writer(args.output[0])
         else:
             writer = csv.writer(sys.stdout)
 
         for key, value in mailList.items():
-            if args.extended == True:
+            if args.extended is True:
                 detail = self.mailAPI.getAccountDetails(value)
                 writer.writerow(self.detailToList(detail))
             else:
-                if args.output != None:
+                if args.output is not None:
                     output.write(key + '\n')
                 else:
                     print(key)
@@ -114,7 +114,7 @@ class Console(object):
 
     def delete(self, args):
         """Delete the mails from the file or the command line"""
-        if args.input != None:
+        if args.input is not None:
             emails = args.input.read().splitlines()
         else:
             emails = args.email

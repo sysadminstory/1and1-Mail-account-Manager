@@ -29,12 +29,11 @@ class EmailAccountManager(object):
     accountDetailsURL = 'https://clients.1and1.fr/Email_Summary?id={id}'
 
     userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0)'\
-        ' Gecko/20100101 Firefox/51.0' # User agent used during HTTP request
+        ' Gecko/20100101 Firefox/51.0'  # User agent used during HTTP request
 
-    isLogged = False # Store the login state
-    accountList = None # Store the account list when first used
-    accountCached = False # True if the account list has been cached
-
+    isLogged = False  # Store the login state
+    accountList = None  # Store the account list when first used
+    accountCached = False  # True if the account list has been cached
 
     def __init__(self, username, password):
         """Construstor used to init the config and authenticate"""
@@ -68,8 +67,8 @@ class EmailAccountManager(object):
 
         data = urllib.parse.urlencode(loginformdata)
         data = data.encode()
-        request = urllib.request.Request(EmailAccountManager.loginURL,\
-                data, self.headers)
+        request = urllib.request.Request(EmailAccountManager.loginURL,
+                                         data, self.headers)
         response = self.opener.open(request)
         responsebody = response.read().decode()
 
@@ -103,7 +102,7 @@ class EmailAccountManager(object):
                           "create-basic.password": emailpassword,
                           "create-basic.repeatPassword": emailpassword,
                           "__sendingdata": 1,
-                          "__SBMT:d0e8796d2:":""}
+                          "__SBMT:d0e8796d2:": ""}
 
         # Set the message data
         strData = {'emailaccount': emailaccount}
@@ -132,14 +131,13 @@ class EmailAccountManager(object):
     def doRequest(self, URL, URLData, postData):
         """Do a request to the control center and return the response URL,
         content, and a reference to the whole response"""
-        if postData != None:
+        if postData is not None:
             data = urllib.parse.urlencode(postData).encode()
         else:
             data = None
 
-        if URLData != None:
+        if URLData is not None:
             URL = self.formatURL(URL, URLData)
-
 
         request = urllib.request.Request(URL, data, self.headers)
         response = self.opener.open(request)
@@ -169,7 +167,7 @@ class EmailAccountManager(object):
 
         # We only ask the Control Panel if we did not already get the
         # account list
-        if self.accountCached == False:
+        if self.accountCached is False:
             accountList = {}
             size = 100
             page = 1
@@ -265,7 +263,6 @@ class EmailAccountManager(object):
             result = element[0]
         return result
 
-
     def listAccount(self):
         """Display all accounts"""
         accountList = self.getAccountList()
@@ -285,7 +282,7 @@ class EmailAccountManager(object):
         """Delete the email account using the email address"""
         strData = {'account': account}
         ID = self.getAccountID(account)
-        if ID != None:
+        if ID is not None:
             self.deleteAccountID(self.getAccountID(account))
             print('Account {account} deleted successfully'.format(**strData))
         else:
