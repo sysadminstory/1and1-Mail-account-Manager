@@ -36,6 +36,7 @@ Each command has his own help.
 Creation of emails are only done using CSV files.
 
 The format of this file is the following :
+
 Domain Name, Email Username, Display Name, First Name, Last Name, Password
 
 Example :
