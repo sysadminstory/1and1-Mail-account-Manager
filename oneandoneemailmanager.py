@@ -8,7 +8,7 @@ from lxml import html
 
 
 class EmailAccountManager(object):
-    """Class to manipulaote amil accounts on 1&1 Control Panel"""
+    """Class to manipulate amil accounts on 1&1 Control Panel"""
 
     # 1&1 Control Panel URL
     loginURL = 'https://account.1and1.fr/'
@@ -203,7 +203,7 @@ class EmailAccountManager(object):
         """Get the account Details (First Name, Last Name, Full Name,
         Account Type, Password)
             Note: Password is not diplayed in the Control Panel, therefore
-            the password is filled with stats"""
+            the password is filled with stars"""
 
         URLData = {'id': ID}
         response = self.doRequest(EmailAccountManager.accountDetailsURL,
