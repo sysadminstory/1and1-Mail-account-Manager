@@ -23,6 +23,11 @@ class Console(object):
         parser_credential_group.add_argument('--password', type=str,
                                              help='Password to log in'
                                              ' Control Panel', required=True)
+        parser_credential_group.add_argument('--provider', type=str,
+                                             help='Domain of the 1&1 Order page'
+                                             'used to create yout Account '
+                                             '(e.g: 1and1.fr or '
+                                             '1and1.co.uk)', required=True)
 
         # Command parser
         subparsers = parser.add_subparsers(title='Commands',
@@ -64,7 +69,9 @@ class Console(object):
 
         # Create the 1&1 API object and continue if the login worked
         self.mailAPI = oneandoneemailmanager.EmailAccountManager(args.domain,
-                                                                 args.password)
+                                                                 args.password,
+                                                                 args.provider
+                                                                 )
         if self.mailAPI.isLogged:
             args.func(args)
         else:

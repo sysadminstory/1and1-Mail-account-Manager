@@ -4,30 +4,12 @@ import urllib
 import ssl
 import http.cookiejar
 import sys
+import oneandoneemailconfig
 from lxml import html
 
 
 class EmailAccountManager(object):
     """Class to manipulate amil accounts on 1&1 Control Panel"""
-
-    # 1&1 Control Panel URL
-    loginURL = 'https://account.1and1.fr/'
-    createEmailURL = 'https://clients.1and1.fr/create-basic-email'
-    listEmailURL = 'https://clients.1and1.fr/CenterCommunication?'\
-        '__render_href=txt/pages/CenterCommunication.xml&__render_part='\
-        'table-component-body&__render_module=frontend-common&page.size='\
-        '{size}&page.page={page}'
-    pageCountURL = 'https://clients.1and1.fr/CenterCommunication?'\
-        '__render_href=txt/pages/CenterCommunication.xml&__render_part='\
-        'email-overview-pagination-content&__render_module='\
-        'frontend-common&page.size={size}&page.page={page}&'\
-        '__reuse=1488715767183.__renderinclude__'
-    deleteURL = 'https://clients.1and1.fr/CenterCommunication?'\
-        '__render_href=txt/pages/CenterCommunication.xml&__render_part='\
-        'table-component-body&__render_module=frontend-common&'\
-        '__sendingdata=1&__forcestop=true&__CMD%5B%5D%3ASUBWRP=delete&'\
-        'delete.id={id}'
-    accountDetailsURL = 'https://clients.1and1.fr/Email_Summary?id={id}'
 
     userAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0)'\
         ' Gecko/20100101 Firefox/51.0'  # User agent used during HTTP request
@@ -36,8 +18,11 @@ class EmailAccountManager(object):
     accountList = None  # Store the account list when first used
     accountCached = False  # True if the account list has been cached
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, provider):
         """Construstor used to init the config and authenticate"""
+        self.config = oneandoneemailconfig.OneAndOneConfig(provider)
+        self.URL = self.config.getConfig()
+
         self.oneandoneuser = username
         self.onenandonepassword = password
         self.headers = {'User-Agent': EmailAccountManager.userAgent}
@@ -57,8 +42,7 @@ class EmailAccountManager(object):
     def authenticate(self):
         """Authenticate to the 1&1 Control Panel"""
         # get cookie from login page
-        request = urllib.request.Request(EmailAccountManager.loginURL)
-        response = self.opener.open(request)
+        self.doRequest(self.URL['loginURL'], None, None)
 
         loginformdata = {
             "__sendingdata": 1,
@@ -66,12 +50,8 @@ class EmailAccountManager(object):
             "oaologin.username": self.oneandoneuser
         }
 
-        data = urllib.parse.urlencode(loginformdata)
-        data = data.encode()
-        request = urllib.request.Request(EmailAccountManager.loginURL,
-                                         data, self.headers)
-        response = self.opener.open(request)
-        responsebody = response.read().decode()
+        response = self.doRequest(self.URL['loginURL'], None, loginformdata)
+        responsebody = response['body']
 
         # Check if we are really logged in
         if "/Logout" in responsebody:
@@ -107,7 +87,7 @@ class EmailAccountManager(object):
         # Set the message data
         strData = {'emailaccount': emailaccount}
 
-        response = self.doRequest(EmailAccountManager.createEmailURL,
+        response = self.doRequest(self.URL['createEmailURL'],
                                   None, newAccountData)
         responsebody = response['body']
 
@@ -129,16 +109,21 @@ class EmailAccountManager(object):
         return URL.format(**data)
 
     def doRequest(self, URL, URLData, postData):
-        """Do a request to the control center and return the response URL,
-        content, and a reference to the whole response"""
+        """Do a request to an URL, using the content of URLData to replace the
+            URL placeholder and create a POST request if postData is present. 
+            It return the response URL, content, and a reference to the whole
+            response"""
+        # Encode the POST parameters if needed
         if postData is not None:
             data = urllib.parse.urlencode(postData).encode()
         else:
             data = None
 
+        # Replace the placeholder in the URL if needed 
         if URLData is not None:
             URL = self.formatURL(URL, URLData)
 
+        # Do the request
         request = urllib.request.Request(URL, data, self.headers)
         response = self.opener.open(request)
         return {'url': response.geturl(), 'body': response.read().decode(),
@@ -146,7 +131,7 @@ class EmailAccountManager(object):
 
     def getPageCount(self, URLData):
         """Count the number of pages of the account list"""
-        response = self.doRequest(EmailAccountManager.pageCountURL,
+        response = self.doRequest(self.URL['pageCountURL'],
                                   URLData, None)
         responsebody = response['body']
         # If the cast in int fails, then there is only one page
@@ -160,7 +145,7 @@ class EmailAccountManager(object):
             return 1
 
     def getAccountList(self):
-        """Get the whole account list from the Control Panel
+        """Get the whole account list from the Control Panel as a dict
             The format is a dict with the email as key and the id as value :
             Example : {'email@domain.com':123456789}
         """
@@ -179,7 +164,7 @@ class EmailAccountManager(object):
             pageCount = self.getPageCount(URLData)
             for page in range(1, pageCount + 1):
                 URLData = {'size': size, 'page': page}
-                response = self.doRequest(EmailAccountManager.listEmailURL,
+                response = self.doRequest(self.URL['listEmailURL'],
                                           URLData, None)
                 responsebody = response['body']
 
@@ -206,7 +191,7 @@ class EmailAccountManager(object):
             the password is filled with stars"""
 
         URLData = {'id': ID}
-        response = self.doRequest(EmailAccountManager.accountDetailsURL,
+        response = self.doRequest(self.URL['accountDetailsURL'],
                                   URLData, None)
         responsebody = response['body']
 
@@ -223,7 +208,7 @@ class EmailAccountManager(object):
                        '/div[2]/div[2]/table[1]/tbody/table/tr[1]/td[1]/span'
                        '/text()'))
         # Get all the Names if this is not a redirect
-        if accounttype != 'Redirection':
+        if accounttype != self.config.getForwardName():
             emailfirstname = self.arrayToString(
                 tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
                            '/div[2]/div[2]/table/tbody/table/tr[2]/td/text()'))
@@ -292,7 +277,7 @@ class EmailAccountManager(object):
     def deleteAccountID(self, ID):
         """Delete the email account using the ID of this account"""
         URLData = {'id': ID}
-        self.doRequest(EmailAccountManager.deleteURL, URLData, None)
+        self.doRequest(self.URL['deleteURL'], URLData, None)
 
 if __name__ == "__main__":
-    print("Module to create 1and1 email account")
+    print("Module to manage 1and1 email account")
