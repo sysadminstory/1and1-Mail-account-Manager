@@ -20,7 +20,7 @@ To install this tool, simply clone this GIT repository :
 	Credentials:
 	  --domain DOMAIN       Domain name to login Control Panel
 	  --password PASSWORD   Password to log in Control Panel
-	  --provider PROVIDER   Domain of the 1&1 Order pageused to create yout
+	  --provider PROVIDER   Domain of the 1&1 Order page used to create your
 				Account (e.g: 1and1.fr or 1and1.co.uk)
 
 	Commands:
@@ -28,8 +28,8 @@ To install this tool, simply clone this GIT repository :
 
 	  {create,c,list,l,delete,d}
 				Choose what do you want to do
-	    create (c)          Create emails acounts
-	    list (l)            List emails acounts
+	    create (c)          Create emails accounts
+	    list (l)            List emails accounts
 	    delete (d)          Delete email account
 
 Each command has his own help.
@@ -54,9 +54,9 @@ The format is defined in the CSV File Format Section.
 			   format be used with the 'create' command if you add the
 			   password
 
-If --output is used, the list of the mails account will be written to the specified file.
+If --output is used, the list of the mail accounts will be written to the specified file.
 If --extended is used, the output (regardless if the output is a file or not) will be in a CSV format.
-The CSV format will be the the same as in the CSV File Format Section but with an additional column at the end showing the account type.
+The CSV format is described in the CSV File Format Section.
 
 ### Delete Help
 	usage: console.py delete [-h] [--input [INPUT]] ...
@@ -74,21 +74,34 @@ If a file is used, you must place one email account per line.
 
 ### CSV File format
 
-Creation of emails are only done using CSV files.
+Creation of emails are only done using CSV files. You can list emails using the CSV format too
 
-The format of this file is the following :
+The format of this file or output is the following :
 
-Domain Name, Email Username, Display Name, First Name, Last Name, Password
+Domain Name, Email Username, Display Name, First Name, Last Name, Password,Type
+
+Type could be one of :
+* MAIL : the classic email account
+* REDIRECT : an email redirect
+* MAILBUSINESS : a "Business / Groupware" email
+* RESOURCE : a "Resource" for the Groupware function (like rooms, hardware, ...)
+* MAILINGLIST : a Mailing List
+* EXCHANGE : an Exchange account
+
+Creation is only supported for the MAIL type.
+Deletion is only supported for MAIL, REDIRECT and MAILBUSINESS type.
+Other type are used by the email list command.
+
 
 Example :
-domain.com, contact, John Smith, John, Smith,V3ryC0o1Passw0rd!
+domain.com, contact, John Smith, John, Smith,V3ryC0o1Passw0rd!,MAIL
 
 ## Limitation
-Currently only supporting those 1&1 contries :
-*   France
-*   United Kingdom
+Currently only supporting those 1&1 countries :
+*  France
+*  United Kingdom
 
-You must use a domain name to log in : customer number are not supported
+You must use a domain name to log in : customer number are not supported.
 
 ## Contributing
 1. Fork it!
@@ -98,10 +111,20 @@ You must use a domain name to log in : customer number are not supported
 5. Submit a pull request :D
 
 ## History
-2017-03-07 : Initial release
-2017-03-09 : Release that supports more than one 
+* 2017-03-07
+  * Initial release
+* 2017-03-09 :
+  * Release that supports more than one provider
+* 2017-03-26 : 
+  * Fixed detailed listing emails when there were Exchange, Mailing List or Resource accounts
+  * More PEP8 conformance
+  * We don't rely on "textual" content to determine the account type
+  * Add support of Extended details on Exchange account
+  * Limit the deletion tries to the supported types
+  * Fixed many typos
+
 ## Credits
-The intial work for the control panel login was done here :
+The initial work for the control panel login was done here :
 https://github.com/devilcius/1and1EmailCreator
 ## License
 This code is released under the GNU GENERAL PUBLIC LICENSE v3. See the LICENCE file for more information.
