@@ -41,7 +41,7 @@ class Console(object):
 
         # create the parser for the "create" command
         parser_create = subparsers.add_parser('create', aliases=['c'],
-                                              help='Create emails acounts')
+                                              help='Create emails accounts')
         parser_create.add_argument('--input', type=argparse.FileType('r'),
                                    help='CSV file with list of email to be'
                                    ' created', required=True)
@@ -49,7 +49,7 @@ class Console(object):
 
         # create the parser for the "list" command
         parser_list = subparsers.add_parser('list', aliases=['l'],
-                                            help='List emails acounts')
+                                            help='List emails accounts')
         parser_list.add_argument('--output', nargs=1,
                                  type=argparse.FileType('w'),
                                  help='File to write the list')
