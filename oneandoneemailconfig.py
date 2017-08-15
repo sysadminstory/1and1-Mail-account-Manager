@@ -26,7 +26,10 @@ class OneAndOneConfig(object):
         'table-component-body&__render_module=frontend-common&'\
         '__sendingdata=1&__forcestop=true&__CMD%5B%5D%3ASUBWRP=delete&'\
         'delete.id={id}',
-        'accountDetailsURL': 'https://{CPDom}/Email_Summary?id={id}',
+        'accountDetailsURL': 'https://{CPDom}/email-account-details/mailbox/{id}',
+        'accountDetailsNameURL': 'https://{CPDom}/email-edit-name/mailbox/{id}',
+        'redirectDetailsURL': 'https://{CPDom}/email-account-details/forward/{id}',
+
         'exchangeDetailsURL': 'https://{CPDom}/MsexchangeUpdate?id={id}'
         }
 
@@ -37,6 +40,9 @@ class OneAndOneConfig(object):
                         'CPDom': 'my.1and1.co.uk'}
         }
     domain = None
+
+    # Version of the config file
+    version = '2017-08-15'
 
     def __init__(self, domain):
         """Construstor used to generate the config"""
@@ -57,6 +63,12 @@ class OneAndOneConfig(object):
         for key, value in self.baseURL.items():
             config[key] = value.format_map(StringFormatter(domain_list))
         return config
+
+    @classmethod
+    def get_version(cls):
+        """Return the version of the config file"""
+        return cls.version
+
 
 class StringFormatter(dict):
     """Class used to format the URL as wanted : replace only the domain, but

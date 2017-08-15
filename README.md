@@ -115,13 +115,16 @@ You must use a domain name to log in : customer number are not supported.
   * Initial release
 * 2017-03-09 :
   * Release that supports more than one provider
-* 2017-03-26 : 
+* 2017-03-26 :
   * Fixed detailed listing emails when there were Exchange, Mailing List or Resource accounts
   * More PEP8 conformance
   * We don't rely on "textual" content to determine the account type
   * Add support of Extended details on Exchange account
   * Limit the deletion tries to the supported types
   * Fixed many typos
+* 2017-08-15 :
+  * API and Config updated to support the new version of the 1&1 Control Panel
+  * Added a 'version' command to get the version of the console, API and config (valid credentials are actually required)
 
 ## Credits
 The initial work for the control panel login was done here :

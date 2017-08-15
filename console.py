@@ -14,6 +14,9 @@ class Console(object):
 
     mail_api = None
 
+    # Version of the console
+    consoleVersion = '2017-08-15'
+
     def __init__(self):
         self.parser = argparse.ArgumentParser(
             description="Manage your 1and1 mail accounts")
@@ -67,6 +70,11 @@ class Console(object):
                                    nargs='?')
         parser_delete.add_argument('email', nargs=argparse.REMAINDER)
         parser_delete.set_defaults(func=self.delete)
+        
+        # create the parser for the "version" command
+        parser_create = subparsers.add_parser('version', aliases=['v'],
+                                              help='Show versions')
+        parser_create.set_defaults(func=self.version)
 
 
     def start(self):
@@ -139,8 +147,15 @@ class Console(object):
         for email in emails:
             self.mail_api.delete_account(email)
 
+    def version(self, args):
+        """Show the version of all components used"""
+        versions = self.mail_api.get_version()
+        print('Console Version : ' + self.consoleVersion)
+        print('API Version : ' + versions['manager'])
+        print('Config Version : ' + versions['config'])
+
 def main():
-    """main function that starts tthe whole thing !"""
+    """main function that starts the whole thing !"""
     console = Console()
     console.start()
 

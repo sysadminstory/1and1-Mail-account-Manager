@@ -31,6 +31,9 @@ class EmailAccountManager(object):
     EXCHANGE = 6
     TYPES = ['None', 'MAIL', 'REDIRECT', 'MAILBUSINESS', 'RESOURCE', 'MAILINGLIST', 'EXCHANGE']
 
+    # Version of the Manager
+    version = '2017-08-15'
+
     def __init__(self, username, password, provider):
         """Construstor used to init the config and authenticate"""
         self.config = oneandoneemailconfig.OneAndOneConfig(provider)
@@ -143,10 +146,13 @@ class EmailAccountManager(object):
         else:
             data = None
 
+        #print(url)
+
         # Replace the placeholder in the URL if needed
         if url_data is not None:
             url = self.format_url(url, url_data)
 
+        #print(url)
         # Do the request
         request = urllib.request.Request(url, data, self.headers)
         response = self.opener.open(request)
@@ -201,13 +207,11 @@ class EmailAccountManager(object):
                     '//a[@class="email-address headline-c1"]/@href')
                 types = tree.xpath(
                     '//tr/td[2]/span[contains(@class, "markup-before")]/@class')
-                #print(types)
-                #print(ids)
 
                 for index in range(0, len(mails)):
                     page_name = ids[index].split('?', 1)[0]
 
-                    if page_name == '/Email_Summary':
+                    if page_name.startswith('/email-account-details/'):
                         sub_type = types[index]
                         if 'forward' in sub_type:
                             account_type = self.REDIRECT
@@ -221,9 +225,15 @@ class EmailAccountManager(object):
                         account_type = self.MAILINGLIST
                     elif page_name == '/MsexchangeUpdate':
                         account_type = self.EXCHANGE
-                    account_list[mails[index]] = {
-                        'id' : ids[index].split('=', 1)[1],
-                        'type' : account_type}
+
+                    if account_type in {self.MAIL, self.MAILBUSINESS, self.REDIRECT}:
+                        account_list[mails[index]] = {
+                            'id' : ids[index].split('/', 3)[3],
+                            'type' : account_type}
+                    elif account_type in {self.RESOURCE, self.MAILINGLIST, self.EXCHANGE}:
+                        account_list[mails[index]] = {
+                            'id' : ids[index].split('=', 1)[1],
+                            'type' : account_type}
 
             self.account_list = account_list
             self.account_cached = True
@@ -272,41 +282,49 @@ class EmailAccountManager(object):
         if account_type in {self.MAIL, self.MAILBUSINESS, self.REDIRECT}:
 
 
+            # Selecting the CP URL by account type
+            if account_type == self.REDIRECT:
+                url = self.url['redirectDetailsURL']
+            else:
+                url = self.url['accountDetailsURL']
+
+            # Gathering info available on the global info page
             url_data = {'id': ident}
-            response = self.do_request(self.url['accountDetailsURL'],
-                                       url_data, None)
+            response = self.do_request(url, url_data, None)
             responsebody = response['body']
+            #print(responsebody)
 
             tree = html.fromstring(responsebody)
 
             # Find all the needed data using xpath
             email = self.array_to_string(
-                tree.xpath('//*[@id="mamba-group-adresssummary"]/div[2]/table/'
-                           'tbody/tr/td[2]/text()'))
+                tree.xpath('//h1/text()'))
             domainname = self.get_email_domain(email)
             emailusername = self.get_email_user(email)
+            emailpassword = self.array_to_string(
+                tree.xpath('/html/body/div[1]/div[3]/div[3]/div/div/ul/li[4]/div[2]/div/text()'))
             #accounttype = self.array_to_string(
             #    tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
             #               '/div[2]/div[2]/table[1]/tbody/table/tr[1]/td[1]/span'
             #               '/text()'))
 
-            # Get all the names if this is not a redirect
-            if account_type != self.REDIRECT:
+            if account_type in {self.MAIL, self.MAILBUSINESS}:
+                # Get all the names on the Names detail pages
+                url_data = {'id': ident}
+                response = self.do_request(self.url['accountDetailsNameURL'],
+                                           url_data, None)
+                responsebody = response['body']
+
+                tree = html.fromstring(responsebody)
+
                 emailfirstname = self.array_to_string(
-                    tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
-                               '/div[2]/div[2]/table/tbody/table/tr[2]/td/text()'))
+                    tree.xpath('//input[@id="email-edit-name-firstName"]/@value'))
                 emaillastname = self.array_to_string(
-                    tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
-                               '/div[2]/div[2]/table/tbody/table/tr[3]/td/text()'))
+                    tree.xpath('//input[@id="email-edit-name-lastName"]/@value'))
                 emaildisplayname = self.array_to_string(
-                    tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
-                               '/div[2]/div[2]/table/tbody/table/tr[4]/td/text()'))
-                emailpassword = self.array_to_string(
-                    tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
-                               '/div[2]/div[2]/table/tbody/table/tr[6]/td[1]'
-                               '/span/text()'))
-            # Else we fill them with blanks
+                    tree.xpath('//input[@id="email-edit-name-displayName"]/@value'))
             else:
+            # Else we fill them with blanks for redirects
                 emailfirstname = ''
                 emaillastname = ''
                 emaildisplayname = ''
@@ -427,6 +445,10 @@ class EmailAccountManager(object):
         """Return the index of the account type name"""
         return cls.TYPES.index(typename)
 
+    @classmethod
+    def get_version(cls):
+        """Return the version of the API and the config"""
+        return {'manager': cls.version, 'config': oneandoneemailconfig.OneAndOneConfig.get_version()}
 
 if __name__ == "__main__":
     print("Module to manage 1and1 email account")
