@@ -70,7 +70,7 @@ class Console(object):
                                    nargs='?')
         parser_delete.add_argument('email', nargs=argparse.REMAINDER)
         parser_delete.set_defaults(func=self.delete)
-        
+
         # create the parser for the "version" command
         parser_create = subparsers.add_parser('version', aliases=['v'],
                                               help='Show versions')

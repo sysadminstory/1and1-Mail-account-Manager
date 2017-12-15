@@ -125,6 +125,8 @@ You must use a domain name to log in : customer number are not supported.
 * 2017-08-15 :
   * API and Config updated to support the new version of the 1&1 Control Panel
   * Added a 'version' command to get the version of the console, API and config (valid credentials are actually required)
+* 2017-11-30 :
+  * More changes to API and Config to support the new version of the 1&1 Control Panel
 
 ## Credits
 The initial work for the control panel login was done here :

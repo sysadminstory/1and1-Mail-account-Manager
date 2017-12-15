@@ -21,11 +21,8 @@ class OneAndOneConfig(object):
         'email-overview-pagination-content&__render_module='\
         'frontend-common&page.size={size}&page.page={page}&'\
         '__reuse=1488715767183.__renderinclude__',
-        'deleteURL' : 'https://{CPDom}/CenterCommunication?'\
-        '__render_href=txt/pages/CenterCommunication.xml&__render_part='\
-        'table-component-body&__render_module=frontend-common&'\
-        '__sendingdata=1&__forcestop=true&__CMD%5B%5D%3ASUBWRP=delete&'\
-        'delete.id={id}',
+        'deleteMailboxURL' : 'https://{CPDom}/email-delete-account',
+        'deleteRedirectURL' : 'https://{CPDom}/email-delete-account',
         'accountDetailsURL': 'https://{CPDom}/email-account-details/mailbox/{id}',
         'accountDetailsNameURL': 'https://{CPDom}/email-edit-name/mailbox/{id}',
         'redirectDetailsURL': 'https://{CPDom}/email-account-details/forward/{id}',
@@ -42,7 +39,7 @@ class OneAndOneConfig(object):
     domain = None
 
     # Version of the config file
-    version = '2017-08-15'
+    version = '2017-11-30'
 
     def __init__(self, domain):
         """Construstor used to generate the config"""

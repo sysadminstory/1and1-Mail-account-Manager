@@ -32,10 +32,10 @@ class EmailAccountManager(object):
     TYPES = ['None', 'MAIL', 'REDIRECT', 'MAILBUSINESS', 'RESOURCE', 'MAILINGLIST', 'EXCHANGE']
 
     # Version of the Manager
-    version = '2017-08-15'
+    version = '2017-11-30'
 
     def __init__(self, username, password, provider):
-        """Construstor used to init the config and authenticate"""
+        """Constructor used to init the config and authenticate"""
         self.config = oneandoneemailconfig.OneAndOneConfig(provider)
         self.url = self.config.get_config()
         self.account_cached = False
@@ -219,18 +219,22 @@ class EmailAccountManager(object):
                             account_type = self.MAIL
                         elif 'mailxchange' in sub_type:
                             account_type = self.MAILBUSINESS
+                    elif page_name.startswith('/mailinglist-details/'):
+                        account_type = self.MAILINGLIST
                     elif page_name == '/OxResourceEdit':
                         account_type = self.RESOURCE
-                    elif page_name == '/MailinglistNGMemberShow':
-                        account_type = self.MAILINGLIST
                     elif page_name == '/MsexchangeUpdate':
                         account_type = self.EXCHANGE
 
                     if account_type in {self.MAIL, self.MAILBUSINESS, self.REDIRECT}:
                         account_list[mails[index]] = {
-                            'id' : ids[index].split('/', 3)[3],
+                            'id' : ids[index].split('/', 3)[3].split('?', 2)[0],
                             'type' : account_type}
-                    elif account_type in {self.RESOURCE, self.MAILINGLIST, self.EXCHANGE}:
+                    elif account_type == self.MAILINGLIST:
+                        account_list[mails[index]] = {
+                            'id' : ids[index].split('/', 2)[2].split('?', 2)[0],
+                            'type' : account_type}
+                    elif account_type in {self.RESOURCE, self.EXCHANGE}:
                         account_list[mails[index]] = {
                             'id' : ids[index].split('=', 1)[1],
                             'type' : account_type}
@@ -303,11 +307,6 @@ class EmailAccountManager(object):
             emailusername = self.get_email_user(email)
             emailpassword = self.array_to_string(
                 tree.xpath('/html/body/div[1]/div[3]/div[3]/div/div/ul/li[4]/div[2]/div/text()'))
-            #accounttype = self.array_to_string(
-            #    tree.xpath('/html/body/div[1]/div[3]/div/div/form/div/div[2]'
-            #               '/div[2]/div[2]/table[1]/tbody/table/tr[1]/td[1]/span'
-            #               '/text()'))
-
             if account_type in {self.MAIL, self.MAILBUSINESS}:
                 # Get all the names on the Names detail pages
                 url_data = {'id': ident}
@@ -422,13 +421,29 @@ class EmailAccountManager(object):
         str_data = {'email': email}
 
         if emailtype in (self.MAIL, self.MAILBUSINESS, self.REDIRECT):
-            self.do_request(self.url['deleteURL'], url_data, None)
-            print('Account {account} deleted successfully'.format(**str_data))
+            if emailtype == self.REDIRECT:
+                post_data = {
+                    "__lf": "email_change_type",
+                    "__sendingdata": "1",
+                    "email-delete.mailId": ident,
+                    "email-delete.mailType": "forward",
+                    "__SBMT:d0e8368d2:": ""
+                    }
+            else:
+                post_data = {
+                    "__lf": "email_change_type",
+                    "__sendingdata": "1",
+                    "email-delete.mailId": ident,
+                    "email-delete.mailType": "mailbox",
+                    "__SBMT:d0e8368d2:": ""
+                    }
+                self.do_request(self.url['deleteMailboxURL'], url_data, post_data)
+            print('Account {email} deleted successfully'.format(**str_data))
             success = True
         else:
             self.error('ERROR : sorry but only Mail, Business Mail and '
                        'Redirect accounts deletion is supported yet !\n\t'
-                       '{emailaccount} will not be deleted !\n'
+                       '{email} will not be deleted !\n'
                        .format(**str_data))
             success = False
         return success
@@ -448,7 +463,8 @@ class EmailAccountManager(object):
     @classmethod
     def get_version(cls):
         """Return the version of the API and the config"""
-        return {'manager': cls.version, 'config': oneandoneemailconfig.OneAndOneConfig.get_version()}
+        return {'manager': cls.version,
+                'config': oneandoneemailconfig.OneAndOneConfig.get_version()}
 
 if __name__ == "__main__":
     print("Module to manage 1and1 email account")
